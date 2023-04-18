@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SDC - Synchronizacja Kontaktów</string>
+    <string name="management_activity_title">SDC - Zarządzanie bazą danych kontaktów</string>
+    <string name="add_contact">Dodaj kontakt</string>
+</resources>
