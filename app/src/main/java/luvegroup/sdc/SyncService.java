@@ -7,10 +7,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -38,7 +40,11 @@ public class SyncService extends Service {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                long startTime = Instant.now().getEpochSecond();
+                Log.d("MainActivity", "Starting sync!");
                 ContactManager.synchronizeContacts(SyncService.this);
+                long endTime = Instant.now().getEpochSecond();
+                Log.d("MainActivity", "Sync finished in: " + (endTime - startTime) + "s!");
             }
         }, 0, 3600000); // Run the task every 60 seconds
     }

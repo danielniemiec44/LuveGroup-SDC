@@ -78,6 +78,54 @@ public class ContactManager extends AppCompatActivity {
         }
     }
 
+    public static void addContactsToBook(List<Contact> contacts, Context context) {
+        for (Contact contact : contacts) {
+            String name = contact.getName();
+            String surname = contact.getSurname();
+            String[] numbers = contact.getPhones();
+
+            ArrayList<ContentProviderOperation> operations = new ArrayList<>();
+
+            // Create a new Raw Contact
+            operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, (String) null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, (String) null)
+                    .build());
+
+            // Insert the display name
+            operations.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                    .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, name)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, surname)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name + " " + surname)
+                    .withValue(ContactsContract.CommonDataKinds.Note.NOTE, "SEST-LUVE")
+                    .build());
+
+            int index = 0;
+            for (String number : numbers) {
+                int phoneType = index == 0 ? 2 : 7;
+
+                if (number != null) {
+                    operations.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+                            .withValue(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                            .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, number)
+                            .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, phoneType)
+                            .build());
+                }
+
+                index++;
+            }
+
+            try {
+                context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, operations);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
 
 
@@ -356,29 +404,20 @@ public class ContactManager extends AppCompatActivity {
 
 
     public static void synchronizeContacts(Context context) {
-        //new Thread(() -> {
-            try {
+        try {
             ArrayList<Contact> contacts = fetchAll(context);
             removeAllContactsWithLabel(context, "SEST-LUVE");
             //removeAllBusinessContacts(context);
-                int rawId = getFreeContactID();
-            for(Contact contact : contacts) {
-                //int rawId = dbId + 10000;
-                //removeContactByRawContactId(context, rawId);
-                //Contact contact = contacts.get(dbId);
-                //assert contact != null;
-                //new Thread(() -> {
-                    //addContactToBook(contact, getFreeContactID());
-                //}).start();
-                addContactToBook(contact, rawId);
-                rawId++;
-            }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+            int batchSize = 20;
+            for (int i = 0; i < contacts.size(); i += batchSize) {
+                int endIndex = Math.min(i + batchSize, contacts.size());
+                List<Contact> batchContacts = contacts.subList(i, endIndex);
+                addContactsToBook(batchContacts, context);
             }
-        //}).start();
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -428,7 +467,7 @@ public class ContactManager extends AppCompatActivity {
 
             // Now delete the contacts using the collected raw contact IDs
             for (Long rawContactId : rawContactIds) {
-                Log.d(TAG, "Deleting contact with ID: " + rawContactId);
+                //Log.d(TAG, "Deleting contact with ID: " + rawContactId);
                 removeContactByRawContactId(context, rawContactId);
             }
         }
