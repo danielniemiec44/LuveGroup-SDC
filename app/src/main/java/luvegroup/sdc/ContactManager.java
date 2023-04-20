@@ -22,6 +22,7 @@ import com.github.jasync.sql.db.RowData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -88,8 +89,8 @@ public class ContactManager extends AppCompatActivity {
 
             // Create a new Raw Contact
             operations.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, (String) null)
-                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, (String) null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, "com.android.localphone")
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, "Phone")
                     .build());
 
             // Insert the display name
@@ -99,7 +100,7 @@ public class ContactManager extends AppCompatActivity {
                     .withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, name)
                     .withValue(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, surname)
                     .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name + " " + surname)
-                    .withValue(ContactsContract.CommonDataKinds.Note.NOTE, "SEST-LUVE")
+                    .withValue(ContactsContract.CommonDataKinds.Note.NOTE, "SEST-LUVE (" + UUID.randomUUID().toString() + ")")
                     .build());
 
             int index = 0;
@@ -477,8 +478,8 @@ public class ContactManager extends AppCompatActivity {
         ContentResolver contentResolver = context.getContentResolver();
 
         // Query raw contact IDs that have a note with the specified label
-        String selection = ContactsContract.CommonDataKinds.Note.NOTE + " = ?";
-        String[] selectionArgs = {label};
+        String selection = ContactsContract.CommonDataKinds.Note.NOTE + " LIKE ?";
+        String[] selectionArgs = { label + "%" };
 
         Cursor cursor = contentResolver.query(
                 ContactsContract.Data.CONTENT_URI,

@@ -1,59 +1,57 @@
 package luvegroup.sdc;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import java.time.Instant;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class SyncService extends Service {
-    private Timer timer;
+    public static Timer timer;
     private static final String CHANNEL_ID = "SDCChannel";
     private static final String CHANNEL_NAME = "SDCSync";
     private static final int FOREGROUND_SERVICE_ID = 2137;
+    public static Context context;
+
+    public static long lastUpdate;
+    public static boolean isPending;
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        context = this;
         startForegroundService();
-        startPeriodicSync();
+
+        PeriodicWorkRequest syncRequest = new PeriodicWorkRequest.Builder(SyncWorker.class, 15, TimeUnit.MINUTES)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build();
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork("SyncContacts", ExistingPeriodicWorkPolicy.UPDATE, syncRequest);
+
+
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        stopPeriodicSync();
     }
 
-    private void startPeriodicSync() {
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                long startTime = Instant.now().getEpochSecond();
-                Log.d("MainActivity", "Starting sync!");
-                ContactManager.synchronizeContacts(SyncService.this);
-                long endTime = Instant.now().getEpochSecond();
-                Log.d("MainActivity", "Sync finished in: " + (endTime - startTime) + "s!");
-            }
-        }, 0, 3600000); // Run the task every 60 seconds
-    }
-
-    private void stopPeriodicSync() {
-        if (timer != null) {
-            timer.cancel();
-        }
-    }
 
     @Nullable
     @Override
@@ -76,7 +74,20 @@ public class SyncService extends Service {
 
         // Start the service in the foreground with the notification
         startForeground(FOREGROUND_SERVICE_ID, builder.build());
+
+
     }
+
+    public static void syncContactsNow() {
+        OneTimeWorkRequest syncRequest = new OneTimeWorkRequest.Builder(SyncWorker.class)
+                .setConstraints(new Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .build();
+        WorkManager.getInstance(context).enqueue(syncRequest);
+    }
+
+
+
+
 
 
 

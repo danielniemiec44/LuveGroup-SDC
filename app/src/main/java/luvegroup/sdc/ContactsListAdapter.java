@@ -106,6 +106,10 @@ public class ContactsListAdapter extends ArrayAdapter<Contact> {
                 Button btnClose = dialog.findViewById(R.id.modal_cancel_button);
                 Button btnSave = dialog.findViewById(R.id.modal_login_button);
 
+
+                TextView modalTitle = dialog.findViewById(R.id.modal_title);
+                modalTitle.setText("Edytuj kontakt");
+
                 EditText editName = dialog.findViewById(R.id.name_input);
                 EditText editSurname = dialog.findViewById(R.id.surname_input);
                 EditText editPhone1 = dialog.findViewById(R.id.phone_input_1);

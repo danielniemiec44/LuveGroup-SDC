@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -67,6 +68,9 @@ public class ManagementActivity extends AppCompatActivity {
                 // Step 4: Customize the dialog as desired
                 Button btnClose = dialog.findViewById(R.id.modal_cancel_button);
                 Button btnSave = dialog.findViewById(R.id.modal_login_button);
+
+                TextView modalTitle = dialog.findViewById(R.id.modal_title);
+                modalTitle.setText("Dodaj kontakt");
 
                 EditText editName = dialog.findViewById(R.id.name_input);
                 EditText editSurname = dialog.findViewById(R.id.surname_input);

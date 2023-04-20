@@ -36,7 +36,9 @@ public class PermissionManager {
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.FOREGROUND_SERVICE
+            Manifest.permission.FOREGROUND_SERVICE,
+            Manifest.permission.RECEIVE_BOOT_COMPLETED,
+            Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
     };
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -57,6 +59,12 @@ public class PermissionManager {
                 } else if(currentPermissionIndex == 4) {
                     message = "Aby aplikacja mogła działać musisz przyznać jej uprawnienia do działania w tle";
                 }
+                else if(currentPermissionIndex == 5) {
+                    message = "Aby aplikacja mogła działać musisz przyznać jej uprawnienia do automatycznego startu po uruchomieniu systemu";
+                }
+                else if(currentPermissionIndex == 6) {
+                    message = "Aby aplikacja mogła działać musisz przyznać jej uprawnienia do ignorowania optymalizacji baterii";
+                }
                 showAlertPermissionNeeded(message);
             }
         }
@@ -68,7 +76,7 @@ public class PermissionManager {
             Log.d("MainActivity", "Activity: " + activity.toString());
             ActivityCompat.requestPermissions(activity, new String[]{requiredPermissions[currentPermissionIndex]}, 1234);
         } else {
-            MainActivity.continuePermissionsGranted(context);
+            MainActivity.continuePermissionsGranted();
         }
     }
 
